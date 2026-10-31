@@ -15,7 +15,7 @@
       let
         pkgs = nixpkgs.legacyPackages.${system};
 
-        cargoBuildInputs = with pkgs; lib.optionals stdenv.isDarwin [
+        cargoBuildInputs = with pkgs; lib.optionals stdenv.hostPlatform.isDarwin [
           darwin.apple_sdk.frameworks.CoreServices
         ];
 
@@ -25,6 +25,7 @@
             version = "5.5.1";
 
             buildInputs = cargoBuildInputs;
+            doCheck = false;
 
             src = with pkgs.lib; cleanSourceWith {
               src = self;
@@ -39,9 +40,7 @@
                   inDirectory = directory: hasPrefix directory path';
                 in
                 inDirectory "src" ||
-                inDirectory "tests" ||
-                hasPrefix "Cargo" baseName ||
-                baseName == "info.toml";
+                hasPrefix "Cargo" baseName;
             };
 
             cargoLock.lockFile = ./Cargo.lock;
