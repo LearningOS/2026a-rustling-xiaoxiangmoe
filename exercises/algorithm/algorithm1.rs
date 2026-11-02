@@ -2,8 +2,6 @@
 	single linked list merge
 	This problem requires you to merge two ordered singly linked lists into one ordered singly linked list
 */
-// I AM NOT DONE
-
 use std::fmt::{self, Display, Formatter};
 use std::ptr::NonNull;
 use std::vec::*;
@@ -69,15 +67,46 @@ impl<T> LinkedList<T> {
             },
         }
     }
-	pub fn merge(list_a:LinkedList<T>,list_b:LinkedList<T>) -> Self
-	{
-		//TODO
-		Self {
-            length: 0,
-            start: None,
-            end: None,
+    fn append_node(&mut self, node: NonNull<Node<T>>) {
+        unsafe {
+		// DONE
+            (*node.as_ptr()).next = None;
+            match self.end {
+                None => self.start = Some(node),
+                Some(end) => (*end.as_ptr()).next = Some(node),
+            }
         }
-	}
+        self.end = Some(node);
+        self.length += 1;
+    }
+
+    pub fn merge(list_a: LinkedList<T>, list_b: LinkedList<T>) -> Self
+    where
+        T: Ord,
+    {
+        let mut merged = Self::new();
+        let mut current_a = list_a.start;
+        let mut current_b = list_b.start;
+
+        while let (Some(a), Some(b)) = (current_a, current_b) {
+            let take_a = unsafe { (*a.as_ptr()).val <= (*b.as_ptr()).val };
+            if take_a {
+                current_a = unsafe { (*a.as_ptr()).next };
+                merged.append_node(a);
+            } else {
+                current_b = unsafe { (*b.as_ptr()).next };
+                merged.append_node(b);
+            }
+        }
+
+        let mut remaining = if current_a.is_some() { current_a } else { current_b };
+        while let Some(node) = remaining {
+            remaining = unsafe { (*node.as_ptr()).next };
+            merged.append_node(node);
+        }
+
+        merged
+    }
 }
 
 impl<T> Display for LinkedList<T>
